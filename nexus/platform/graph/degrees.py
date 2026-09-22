@@ -1,0 +1,1 @@
+def degree(store,node_id):return len(store.neighbors(node_id))
