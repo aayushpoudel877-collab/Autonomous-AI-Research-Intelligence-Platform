@@ -1,0 +1,1 @@
+def ids(items:list[tuple[str,float]])->list[str]:return [x for x,_ in items]
