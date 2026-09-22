@@ -1,0 +1,1 @@
+def section_context(sections:list[str],limit:int)->str:return '\n\n'.join(sections[:limit])
