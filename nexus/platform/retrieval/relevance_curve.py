@@ -1,0 +1,1 @@
+def curve(rank:int,decay:float=.85)->float:return decay**max(0,rank-1)
