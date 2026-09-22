@@ -1,0 +1,12 @@
+services:
+  nexus:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      NEXUS_ENVIRONMENT: development
+      NEXUS_DATABASE_URL: sqlite:///./nexus.db
+    volumes:
+      - nexus-data:/app
+volumes:
+  nexus-data:
