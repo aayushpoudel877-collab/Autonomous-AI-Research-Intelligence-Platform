@@ -1,0 +1,1 @@
+"""Knowledge graph primitives for entities, relations, and traversal."""
