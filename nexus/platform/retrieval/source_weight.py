@@ -1,0 +1,1 @@
+def source_weight(source:str,weights:dict[str,float])->float:return weights.get(source,1.0)
