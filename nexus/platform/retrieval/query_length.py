@@ -1,0 +1,1 @@
+def query_length(query:str)->int:return len(query.strip())
