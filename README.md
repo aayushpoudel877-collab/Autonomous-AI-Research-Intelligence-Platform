@@ -29,3 +29,17 @@ Open `/docs` for the API explorer and `/` for the lightweight dashboard.
 
 ## Roadmap
 The repository is organized as a long-running engineering project with incremental architecture, data, AI, verification, MLOps, security, testing, and deployment milestones.
+
+## Phase 2: Web ingestion and persistence
+
+The platform now supports a safer research-ingestion path for public HTTP(S) pages. URL ingestion validates the destination host, rejects private/loopback/link-local/reserved networks, enforces a response-size limit, strips executable HTML sections, and converts readable page content into the same normalized chunk pipeline used by local text.
+
+The API now accepts typed ingestion sources:
+
+- `POST /api/v1/ingest` with `{"source_type":"text","text":"..."}`
+- `POST /api/v1/ingest` with `{"source_type":"url","text":"https://example.org"}`
+- `POST /api/v1/research` with `{"question":"...","top_k":10}`
+
+Indexed chunks are persisted in SQLite and hydrated into the semantic retriever when the application starts, so a process restart no longer discards the research corpus.
+
+This phase intentionally keeps external web fetching bounded and synchronous. A future worker layer will add retries, canonicalization, robots/policy controls, PDF extraction, async jobs, and distributed storage.
