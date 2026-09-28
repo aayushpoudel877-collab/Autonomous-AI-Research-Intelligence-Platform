@@ -1,11 +1,13 @@
 import numpy as np
 from nexus.embeddings.hash_embedding import HashEmbeddingModel
+from nexus.retrieval.hybrid import lexical_score
 from nexus.retrieval.models import SearchResult
 
 
 class InMemoryRetriever:
-    def __init__(self, embedder=None):
+    def __init__(self, embedder=None, semantic_weight=0.75):
         self.embedder = embedder or HashEmbeddingModel()
+        self.semantic_weight = semantic_weight
         self.items = []
         self.matrix = None
 
@@ -18,7 +20,9 @@ class InMemoryRetriever:
             return []
         top_k = max(1, min(top_k, len(self.items)))
         q = self.embedder.embed(query)
-        scores = self.matrix @ q
+        semantic = self.matrix @ q
+        lexical = np.array([lexical_score(query, item.text) for item in self.items])
+        scores = self.semantic_weight * semantic + (1 - self.semantic_weight) * lexical
         ids = np.argsort(scores)[::-1][:top_k]
         return [
             SearchResult(
