@@ -43,3 +43,21 @@ The API now accepts typed ingestion sources:
 Indexed chunks are persisted in SQLite and hydrated into the semantic retriever when the application starts, so a process restart no longer discards the research corpus.
 
 This phase intentionally keeps external web fetching bounded and synchronous. A future worker layer will add retries, canonicalization, robots/policy controls, PDF extraction, async jobs, and distributed storage.
+
+## Phase 3: Research acquisition and evidence intelligence
+
+NEXUS now extends the acquisition layer beyond plain text and HTML. Local PDF documents can be parsed into page-aware text, bounded by an ingestion-size policy, and sent through the same normalization/chunking/indexing pipeline.
+
+Retrieval now uses a hybrid score combining deterministic semantic embeddings with token-level lexical relevance. This improves exact-term matching while retaining semantic retrieval behavior.
+
+Research reports expose stable evidence identifiers such as `[E1]` and return citation metadata containing the originating source URI and retrieval score. Provenance utilities also provide deterministic SHA-256 content hashes for audit trails.
+
+### Phase 3 source matrix
+
+| Source | Adapter | Persistence | Retrieval | Provenance |
+|---|---|---|---|---|
+| Inline text | Yes | Yes | Hybrid | Yes |
+| Public HTML | Yes | Yes | Hybrid | Yes |
+| Local PDF | Yes | Yes | Hybrid | Yes |
+
+The next phase can build on this foundation with asynchronous acquisition jobs, richer PDF metadata/layout extraction, persistent vector indexes, entity-aware graph retrieval, model-provider routing, and stronger citation verification.
