@@ -18,18 +18,12 @@ def health():
 def ingest(request: IngestRequest):
     if not request.text:
         raise HTTPException(status_code=422, detail="text must contain source content or a file path")
-    kind = request.source_type
     try:
-        doc = get_ingestor(kind).ingest(request.text)
-        if kind == "text" and request.title != "Text Input":
+        doc = get_ingestor(request.source_type).ingest(request.text)
+        if request.source_type == "text" and request.title != "Text Input":
             doc.title = request.title
         chunks = IndexPipeline(retriever, store=store).index([doc])
-        return {
-            "document_id": doc.document_id,
-            "chunks": len(chunks),
-            "source_uri": doc.source_uri,
-            "metadata": doc.metadata,
-        }
+        return {"document_id": doc.document_id, "chunks": len(chunks), "source_uri": doc.source_uri, "metadata": doc.metadata}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -38,7 +32,7 @@ def ingest(request: IngestRequest):
 
 @router.post("/research", response_model=ResearchResponse)
 def research(request: ResearchRequest):
-    ctx = build_orchestrator(retriever).run(request.question, top_k=request.top_k)
+    ctx = build_orchestrator(retriever).run(request.question, top_k=request.top_k, graph_hops=request.graph_hops)
     verification = ctx.state["verification"]
     return ResearchResponse(
         question=request.question,
@@ -46,4 +40,7 @@ def research(request: ResearchRequest):
         evidence_count=verification["evidence_count"],
         grounded=verification["grounded"],
         citations=ctx.state.get("citations", []),
+        citation_integrity=verification.get("citation_integrity", {}),
+        contradictions=verification.get("contradictions", []),
+        graph_fact_count=len(ctx.state.get("graph_facts", [])),
     )
