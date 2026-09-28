@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class IngestRequest(BaseModel):
-    source_type: Literal["text", "url"] = "text"
+    source_type: Literal["text", "url", "pdf"] = "text"
     text: str | None = None
     title: str = "Text Input"
 
@@ -18,3 +18,4 @@ class ResearchResponse(BaseModel):
     report: str
     evidence_count: int
     grounded: bool
+    citations: list[dict[str, str | float]] = []
