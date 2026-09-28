@@ -16,24 +16,24 @@ def health():
 
 @router.post("/ingest")
 def ingest(request: IngestRequest):
-    if request.source_type == "text":
-        if not request.text:
-            raise HTTPException(status_code=422, detail="text is required for text ingestion")
-        source = request.text
-        ingestor = get_ingestor("text")
-    else:
-        if not request.text:
-            raise HTTPException(status_code=422, detail="text must contain the URL")
-        source = request.text
-        ingestor = get_ingestor("url")
+    if not request.text:
+        raise HTTPException(status_code=422, detail="text must contain source content or a file path")
+    kind = request.source_type
     try:
-        doc = ingestor.ingest(source)
-        if request.source_type == "text" and request.title != "Text Input":
+        doc = get_ingestor(kind).ingest(request.text)
+        if kind == "text" and request.title != "Text Input":
             doc.title = request.title
         chunks = IndexPipeline(retriever, store=store).index([doc])
-        return {"document_id": doc.document_id, "chunks": len(chunks), "source_uri": doc.source_uri}
+        return {
+            "document_id": doc.document_id,
+            "chunks": len(chunks),
+            "source_uri": doc.source_uri,
+            "metadata": doc.metadata,
+        }
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/research", response_model=ResearchResponse)
@@ -45,4 +45,5 @@ def research(request: ResearchRequest):
         report=ctx.state["report"],
         evidence_count=verification["evidence_count"],
         grounded=verification["grounded"],
+        citations=ctx.state.get("citations", []),
     )
