@@ -5,11 +5,19 @@ from nexus.utils import stable_id
 
 _ENTITY = re.compile(r"\b[A-Z][A-Za-z0-9_-]{2,}(?:\s+[A-Z][A-Za-z0-9_-]{2,}){0,3}\b")
 _RELATION = re.compile(
-    r"(?P<a>\b[A-Z][A-Za-z0-9_-]{2,}(?:\s+[A-Z][A-Za-z0-9_-]{2,}){0,2})\s+"
+    r"(?P<a>\b[A-Z][A-Za-z0-9_-]{2,})\s+"
     r"(?P<rel>supports|uses|powers|enables|depends on|contains|includes|improves|"
     r"influences|develops|builds|is|are)\s+"
-    r"(?P<b>\b[A-Z][A-Za-z0-9_-]{2,}(?:\s+[A-Z][A-Za-z0-9_-]{2,}){0,2})"
+    r"(?P<b>\b[A-Z][A-Za-z0-9_-]{2,})"
 )
+
+
+def _resolve(label: str, by_label: dict[str, Node]) -> Node | None:
+    direct = by_label.get(label.lower())
+    if direct:
+        return direct
+    prefix = label.lower() + " "
+    return next((node for key, node in by_label.items() if key.startswith(prefix)), None)
 
 
 class EntityGraphExtractor:
@@ -19,8 +27,8 @@ class EntityGraphExtractor:
         by_label = {n.label.lower(): n for n in nodes}
         edges: list[Edge] = []
         for match in _RELATION.finditer(text):
-            a, b = match.group("a").strip(), match.group("b").strip()
-            left, right = by_label.get(a.lower()), by_label.get(b.lower())
+            left = _resolve(match.group("a").strip(), by_label)
+            right = _resolve(match.group("b").strip(), by_label)
             if left and right and left.id != right.id:
                 edges.append(Edge(left.id, right.id, match.group("rel").lower(), 0.85, chunk_id, source_uri))
         if not edges:
