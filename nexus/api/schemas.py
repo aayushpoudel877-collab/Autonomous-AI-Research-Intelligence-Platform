@@ -11,6 +11,7 @@ class IngestRequest(BaseModel):
 class ResearchRequest(BaseModel):
     question: str = Field(min_length=3)
     top_k: int = Field(default=5, ge=1, le=20)
+    graph_hops: int = Field(default=1, ge=1, le=2)
 
 
 class ResearchResponse(BaseModel):
@@ -18,4 +19,7 @@ class ResearchResponse(BaseModel):
     report: str
     evidence_count: int
     grounded: bool
-    citations: list[dict[str, str | float]] = []
+    citations: list[dict[str, str | float]] = Field(default_factory=list)
+    citation_integrity: dict = Field(default_factory=dict)
+    contradictions: list[dict] = Field(default_factory=list)
+    graph_fact_count: int = 0
