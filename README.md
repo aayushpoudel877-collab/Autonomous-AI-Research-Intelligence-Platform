@@ -61,3 +61,16 @@ Research reports expose stable evidence identifiers such as `[E1]` and return ci
 | Local PDF | Yes | Yes | Hybrid | Yes |
 
 The next phase can build on this foundation with asynchronous acquisition jobs, richer PDF metadata/layout extraction, persistent vector indexes, entity-aware graph retrieval, model-provider routing, and stronger citation verification.
+
+
+## Phase 4: Knowledge intelligence
+
+NEXUS now turns retrieved evidence into a provenance-aware knowledge graph before verification. Entity and relation extraction is deterministic and provider-free, while graph edges retain the originating chunk and source URI. Graph retrieval expands one or two hops from entities mentioned by the research question, enabling lightweight multi-hop evidence traversal.
+
+Verification now checks citation IDs against the actual evidence set and detects graph-level conflicts where the same subject/relation points to different targets. Research responses expose citation-integrity metadata, contradiction findings, and graph-fact counts. This keeps the intelligence layer auditable rather than presenting graph-derived statements as unsupported model output.
+
+### Phase 4 flow
+
+Question → Hybrid Retrieval → Entity/Relation Extraction → Graph Expansion → Contradiction Detection → Citation Verification → Report
+
+The graph implementation is intentionally deterministic and replaceable. Future phases can add persistent graph storage, entity linking against external knowledge bases, richer relation models, asynchronous acquisition, and model-provider routing without changing the agent contract.
