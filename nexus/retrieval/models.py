@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 
+
 class SearchResult(BaseModel):
     chunk_id: str
     document_id: str
