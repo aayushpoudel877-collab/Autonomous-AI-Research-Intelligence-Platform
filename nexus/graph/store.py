@@ -24,8 +24,7 @@ class GraphStore:
     def neighbors(self, node_id: str, hops: int = 1) -> list[str]:
         if hops < 1:
             return []
-        frontier = {node_id}
-        seen = {node_id}
+        frontier, seen = {node_id}, {node_id}
         for _ in range(hops):
             nxt = {e.target for e in self.edges if e.source in frontier}
             nxt |= {e.source for e in self.edges if e.target in frontier}
@@ -39,11 +38,6 @@ class GraphStore:
 
     def facts_for(self, node_ids: set[str], hops: int = 1) -> list[Edge]:
         expanded = set(node_ids)
-        expanded.update(self.neighbors(node_id, hops=hops) for node_id in node_ids)
-        flat = set()
-        for item in expanded:
-            if isinstance(item, set):
-                flat.update(item)
-            else:
-                flat.add(item)
-        return self.edges_for(flat)
+        for node_id in node_ids:
+            expanded.update(self.neighbors(node_id, hops=hops))
+        return self.edges_for(expanded)
