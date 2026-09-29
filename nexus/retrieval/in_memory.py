@@ -1,4 +1,5 @@
 import numpy as np
+
 from nexus.embeddings.hash_embedding import HashEmbeddingModel
 from nexus.retrieval.hybrid import lexical_score
 from nexus.retrieval.models import SearchResult
@@ -12,8 +13,17 @@ class InMemoryRetriever:
         self.matrix = None
 
     def add(self, chunks):
-        self.items.extend(chunks)
-        self.matrix = self.embedder.embed_many([c.text for c in self.items]) if self.items else None
+        existing = {c.chunk_id: i for i, c in enumerate(self.items)}
+        for chunk in chunks:
+            index = existing.get(chunk.chunk_id)
+            if index is None:
+                self.items.append(chunk)
+                existing[chunk.chunk_id] = len(self.items) - 1
+            else:
+                self.items[index] = chunk
+        self.matrix = (
+            self.embedder.embed_many([c.text for c in self.items]) if self.items else None
+        )
 
     def search(self, query, top_k=5):
         if not self.items:
