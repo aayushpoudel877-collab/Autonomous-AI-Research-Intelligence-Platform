@@ -1,0 +1,1 @@
+"""Research planning, acquisition, memory, and orchestration primitives."""
