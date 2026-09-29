@@ -74,3 +74,16 @@ Verification now checks citation IDs against the actual evidence set and detects
 Question → Hybrid Retrieval → Entity/Relation Extraction → Graph Expansion → Contradiction Detection → Citation Verification → Report
 
 The graph implementation is intentionally deterministic and replaceable. Future phases can add persistent graph storage, entity linking against external knowledge bases, richer relation models, asynchronous acquisition, and model-provider routing without changing the agent contract.
+
+
+## Phase 5: Autonomous research orchestration
+
+The research layer now performs bounded autonomous planning over the indexed evidence corpus. A deterministic planner decomposes a research question into a small set of auditable subquestions, and the retrieval agent executes those planned queries before graph expansion and verification. This avoids hiding autonomous behavior inside an opaque prompt while preserving the existing agent contract.
+
+Research memory is persisted in SQLite, including the question, generated plan, evidence count, graph-fact count, and citation-integrity measurement. The knowledge graph is also persisted and rehydrated at startup, fixing the previous process-local graph limitation.
+
+Source discovery now groups retrieved evidence by originating source URI and ranks sources by their strongest retrieval score. The API exposes the research plan, iteration count, discovered sources, graph facts, contradictions, and citation-integrity information. The bounded loop is intentionally local and deterministic; external search providers can be added later through a replaceable discovery adapter.
+
+### Phase 5 flow
+
+Question → Research Planner → Planned Retrieval → Source Discovery → Knowledge Graph → Verification → Citation Audit → Research Memory → Report
