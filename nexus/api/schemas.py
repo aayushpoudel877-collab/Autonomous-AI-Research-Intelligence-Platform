@@ -1,4 +1,5 @@
 from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -13,6 +14,13 @@ class ResearchRequest(BaseModel):
     top_k: int = Field(default=5, ge=1, le=20)
     graph_hops: int = Field(default=1, ge=1, le=2)
     max_iterations: int = Field(default=3, ge=1, le=3)
+    source_urls: list[str] = Field(default_factory=list, max_length=20)
+    max_sources: int = Field(default=5, ge=1, le=20)
+
+
+class AcquisitionRequest(BaseModel):
+    urls: list[str] = Field(min_length=1, max_length=20)
+    max_sources: int = Field(default=5, ge=1, le=20)
 
 
 class ResearchResponse(BaseModel):
@@ -27,3 +35,11 @@ class ResearchResponse(BaseModel):
     research_plan: list[str] = Field(default_factory=list)
     iterations: int = 0
     discovered_sources: list[dict[str, str | float]] = Field(default_factory=list)
+    acquisition: dict = Field(default_factory=dict)
+
+
+class AcquisitionJobResponse(BaseModel):
+    job_id: str
+    status: str
+    error: str = ""
+    result: dict | None = None
