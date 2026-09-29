@@ -2,9 +2,10 @@ from nexus.graph.model import Edge, Node
 
 
 class GraphStore:
-    """Deterministic in-memory graph with provenance-aware edges."""
+    """Deterministic graph with optional SQLite persistence and provenance-aware edges."""
 
-    def __init__(self):
+    def __init__(self, storage=None):
+        self.storage = storage
         self.nodes: dict[str, Node] = {}
         self.edges: list[Edge] = []
 
@@ -20,6 +21,8 @@ class GraphStore:
             self.add_node(node)
         for edge in edges:
             self.add_edge(edge)
+        if self.storage:
+            self.storage.save_graph(nodes, edges)
 
     def neighbors(self, node_id: str, hops: int = 1) -> list[str]:
         if hops < 1:
@@ -41,3 +44,9 @@ class GraphStore:
         for node_id in node_ids:
             expanded.update(self.neighbors(node_id, hops=hops))
         return self.edges_for(expanded)
+
+    def load(self, nodes: list[Node], edges: list[Edge]) -> None:
+        for node in nodes:
+            self.add_node(node)
+        for edge in edges:
+            self.add_edge(edge)
