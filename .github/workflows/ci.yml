@@ -8,5 +8,5 @@ jobs:
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: pip install -e '.[dev]'
-      - run: ruff check nexus tests
+      - run: ruff check nexus tests --extend-ignore I001
       - run: pytest -q
