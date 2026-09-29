@@ -4,15 +4,9 @@ from nexus.agents.retriever import RetrievalAgent
 from nexus.agents.researcher import ResearchAgent
 from nexus.agents.verifier import VerificationAgent
 from nexus.agents.reporter import ReportAgent
-from nexus.graph.store import GraphStore
+from nexus.api import dependencies
 
 
-def build_orchestrator(retriever):
-    graph = GraphStore()
-    return Orchestrator([
-        ResearchAgent(),
-        RetrievalAgent(retriever),
-        GraphRetrievalAgent(graph),
-        VerificationAgent(),
-        ReportAgent(),
-    ])
+def build_orchestrator(retriever, graph=None):
+    graph = graph or dependencies.graph
+    return Orchestrator([ResearchAgent(), RetrievalAgent(retriever), GraphRetrievalAgent(graph), VerificationAgent(), ReportAgent()])
