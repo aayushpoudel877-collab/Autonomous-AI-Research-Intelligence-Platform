@@ -42,6 +42,7 @@ def research(request: ResearchRequest):
         citations=ctx.state.get("citations", []), citation_integrity=verification.get("citation_integrity", {}),
         contradictions=verification.get("contradictions", []), graph_fact_count=len(ctx.state.get("graph_facts", [])),
         research_plan=ctx.state.get("research_plan", []), iterations=ctx.state.get("iterations", 0),
+        discovered_sources=ctx.state.get("discovered_sources", []),
     )
 
 
