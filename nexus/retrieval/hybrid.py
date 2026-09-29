@@ -2,7 +2,7 @@ from collections import Counter
 import math
 import re
 
-_TOKEN = re.compile(r"\\b[\\w-]+\\b", re.UNICODE)
+_TOKEN = re.compile(r"\b[\w-]+\b", re.UNICODE)
 
 
 def _tokens(text: str) -> list[str]:
