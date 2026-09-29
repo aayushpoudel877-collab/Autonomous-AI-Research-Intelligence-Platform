@@ -1,5 +1,3 @@
-import re
-
 _NEGATIONS = {"not", "never", "no", "false", "cannot", "without"}
 
 
