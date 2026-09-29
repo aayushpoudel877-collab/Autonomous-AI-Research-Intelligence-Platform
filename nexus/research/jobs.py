@@ -21,11 +21,16 @@ class ResearchJobManager:
         self._lock = Lock()
 
     def submit(self, fn, *args, **kwargs) -> ResearchJob:
-        job = ResearchJob(uuid4().hex, "queued")
+        job = ResearchJob(uuid4().hex, "running")
         with self._lock:
             self.jobs[job.job_id] = job
-        future = self.executor.submit(fn, *args, **kwargs)
-        job.status = "running"
+        try:
+            future = self.executor.submit(fn, *args, **kwargs)
+        except Exception as exc:
+            with self._lock:
+                job.status = "failed"
+                job.error = str(exc)
+            return job
         future.add_done_callback(lambda f: self._finish(job.job_id, f))
         return job
 
