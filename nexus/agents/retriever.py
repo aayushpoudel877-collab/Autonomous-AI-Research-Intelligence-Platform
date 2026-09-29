@@ -9,5 +9,13 @@ class RetrievalAgent(Agent):
 
     def run(self, context):
         top_k = int(context.state.get("top_k", 5))
-        context.evidence = self.retriever.search(context.question, top_k=top_k)
+        queries = context.state.get("research_queries") or [context.question]
+        results = []
+        seen = set()
+        for query in queries[:3]:
+            for item in self.retriever.search(query, top_k=top_k):
+                if item.chunk_id not in seen:
+                    seen.add(item.chunk_id)
+                    results.append(item)
+        context.evidence = results[:20]
         return context
