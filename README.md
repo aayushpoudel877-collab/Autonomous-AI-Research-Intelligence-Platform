@@ -87,3 +87,30 @@ Source discovery now groups retrieved evidence by originating source URI and ran
 ### Phase 5 flow
 
 Question → Research Planner → Planned Retrieval → Source Discovery → Knowledge Graph → Verification → Citation Audit → Research Memory → Report
+
+
+## Phase 6: External research acquisition and multi-source intelligence
+
+Phase 6 closes the gap between autonomous research planning and actual source acquisition. The research layer now has a replaceable `SourceSearchProvider` contract, deterministic caller-supplied URL discovery, URL canonicalization, transparent source-quality scoring, content deduplication, persisted acquisition metadata, bounded parallel fetching, and an in-process asynchronous job manager.
+
+The acquisition path deliberately separates network I/O from corpus mutation: URLs are fetched concurrently, then accepted documents are indexed sequentially. This prevents worker-thread races in the in-memory hybrid retriever while still reducing acquisition latency.
+
+### Phase 6 capabilities
+
+- Canonical HTTP(S) URLs with tracking-parameter removal.
+- Provider interface for future search-engine/news/database adapters.
+- Deterministic `StaticURLProvider` for API-driven or test-driven source lists.
+- Source quality heuristic with explicit, bounded scoring rather than an opaque ranking.
+- SHA-256 normalized content deduplication.
+- Persisted source metadata: canonical URL, provider, quality, content hash, fetch time, and freshness value.
+- Bounded concurrent web acquisition with per-source failure isolation.
+- Synchronous acquisition integrated directly into `POST /api/v1/research`.
+- Asynchronous acquisition jobs through `POST /api/v1/research/acquire` and `GET /api/v1/research/acquire/{job_id}`.
+- Acquired-source inspection through `GET /api/v1/research/sources`.
+- Duplicate chunk protection in the hybrid retriever.
+
+### Phase 6 research flow
+
+Question → Planner → Source Candidates → Safe Web Acquisition → Canonicalization/Deduplication → Quality/Freshness Metadata → Persistent Index → Planned Retrieval → Knowledge Graph → Verification → Report
+
+The search-provider boundary remains intentionally provider-agnostic. No commercial search API is hard-coded into the repository, so a production provider can be added without changing the research controller or agent contracts.
