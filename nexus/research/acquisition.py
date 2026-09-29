@@ -1,6 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from nexus.ingestion.registry import get_ingestor
 from nexus.research.dedup import SourceDeduplicator, content_hash
@@ -29,7 +29,7 @@ class AcquisitionManager:
     def _fetch(self, candidate: SourceCandidate):
         canonical = canonicalize_url(candidate.url)
         document = get_ingestor("url").ingest(canonical)
-        fetched_at = datetime.now(timezone.utc).isoformat()
+        fetched_at = datetime.now(UTC).isoformat()
         return candidate, canonical, document, fetched_at
 
     def acquire(self, candidates: list[SourceCandidate], max_sources: int = 5) -> AcquisitionResult:
