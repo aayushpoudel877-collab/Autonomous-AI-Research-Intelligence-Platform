@@ -34,9 +34,7 @@ class SQLiteStore:
 
     def load_chunks(self):
         with self.connect() as c:
-            rows = c.execute(
-                "SELECT id, document_id, text, idx, source_uri FROM chunks ORDER BY document_id, idx"
-            ).fetchall()
+            rows = c.execute("SELECT id, document_id, text, idx, source_uri FROM chunks ORDER BY document_id, idx").fetchall()
         return [Chunk(row[0], row[1], row[2], row[3], {"source_uri": row[4]}) for row in rows]
 
     def save_graph(self, nodes, edges):
@@ -53,9 +51,7 @@ class SQLiteStore:
     def load_graph(self):
         with self.connect() as c:
             nodes = c.execute("SELECT id,label,kind,mentions FROM graph_nodes").fetchall()
-            edges = c.execute(
-                "SELECT source,target,relation,confidence,evidence_chunk_id,source_uri FROM graph_edges"
-            ).fetchall()
+            edges = c.execute("SELECT source,target,relation,confidence,evidence_chunk_id,source_uri FROM graph_edges").fetchall()
         return (
             [Node(row[0], row[1], row[2], tuple(x for x in row[3].split("\n") if x)) for row in nodes],
             [Edge(*row) for row in edges],
@@ -103,6 +99,14 @@ class SQLiteStore:
                 (limit,),
             ).fetchall()
         return [
-            AcquiredSource(*row[:6], freshness_days=row[6])
+            {
+                "canonical_url": row[0],
+                "title": row[1],
+                "provider": row[2],
+                "quality": row[3],
+                "content_hash": row[4],
+                "fetched_at": row[5],
+                "freshness_days": row[6],
+            }
             for row in rows
         ]
