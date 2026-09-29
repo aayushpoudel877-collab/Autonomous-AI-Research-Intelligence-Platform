@@ -26,3 +26,4 @@ class ResearchResponse(BaseModel):
     graph_fact_count: int = 0
     research_plan: list[str] = Field(default_factory=list)
     iterations: int = 0
+    discovered_sources: list[dict[str, str | float]] = Field(default_factory=list)
