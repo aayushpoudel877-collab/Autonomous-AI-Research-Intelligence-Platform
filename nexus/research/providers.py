@@ -11,7 +11,7 @@ class StaticURLProvider:
     name = "static_urls"
 
     def __init__(self, urls: list[str]):
-        self.urls = [canonicalize_url(url) for url in urls]
+        self.urls = list(dict.fromkeys(canonicalize_url(url) for url in urls))
 
     def search(self, query: str, limit: int = 5) -> list[SourceCandidate]:
         return [SourceCandidate(url, provider=self.name) for url in self.urls[:max(0, limit)]]
@@ -23,7 +23,13 @@ class IndexedSourceProvider:
     name = "indexed_sources"
 
     def __init__(self, source_uris: list[str]):
-        self.source_uris = [canonicalize_url(uri) for uri in source_uris if uri.startswith(("http://", "https://"))]
+        self.source_uris = list(
+            dict.fromkeys(
+                canonicalize_url(uri)
+                for uri in source_uris
+                if uri.startswith(("http://", "https://"))
+            )
+        )
 
     def search(self, query: str, limit: int = 5) -> list[SourceCandidate]:
         return [SourceCandidate(url, provider=self.name) for url in self.source_uris[:max(0, limit)]]
