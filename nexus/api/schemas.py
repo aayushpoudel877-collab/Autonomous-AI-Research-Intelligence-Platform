@@ -12,6 +12,7 @@ class ResearchRequest(BaseModel):
     question: str = Field(min_length=3)
     top_k: int = Field(default=5, ge=1, le=20)
     graph_hops: int = Field(default=1, ge=1, le=2)
+    max_iterations: int = Field(default=3, ge=1, le=3)
 
 
 class ResearchResponse(BaseModel):
@@ -23,3 +24,5 @@ class ResearchResponse(BaseModel):
     citation_integrity: dict = Field(default_factory=dict)
     contradictions: list[dict] = Field(default_factory=list)
     graph_fact_count: int = 0
+    research_plan: list[str] = Field(default_factory=list)
+    iterations: int = 0
