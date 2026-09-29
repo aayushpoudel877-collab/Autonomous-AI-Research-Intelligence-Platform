@@ -10,13 +10,29 @@ class GraphRetrievalAgent(Agent):
         self.graph = graph
         self.extractor = EntityGraphExtractor()
 
+    def _resolve_question_ids(self, question_nodes):
+        ids = set()
+        for question_node in question_nodes:
+            exact = self.graph.nodes.get(question_node.id)
+            if exact:
+                ids.add(exact.id)
+                continue
+            label = question_node.label.lower()
+            for node in self.graph.nodes.values():
+                node_label = node.label.lower()
+                if node_label.startswith(label + " ") or label.startswith(node_label + " "):
+                    ids.add(node.id)
+        return ids
+
     def run(self, context):
         for evidence in context.evidence:
-            nodes, edges = self.extractor.extract(evidence.text, evidence.chunk_id, evidence.source_uri)
+            nodes, edges = self.extractor.extract(
+                evidence.text, evidence.chunk_id, evidence.source_uri
+            )
             self.graph.add(nodes, edges)
 
         question_nodes, _ = self.extractor.extract(context.question)
-        ids = {node.id for node in question_nodes}
+        ids = self._resolve_question_ids(question_nodes)
         if not ids:
             context.state["graph_facts"] = []
             return context
