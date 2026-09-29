@@ -1,4 +1,4 @@
-from nexus.research.sources import SourceCandidate, SourceSearchProvider, canonicalize_url
+from nexus.research.sources import SourceCandidate, canonicalize_url
 
 
 class StaticURLProvider:
