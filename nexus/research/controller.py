@@ -9,7 +9,13 @@ class ResearchAcquisitionController:
         self.engine = engine
         self.acquisition_manager = acquisition_manager
 
-    def run(self, question: str, source_urls: list[str] | None = None, max_sources: int = 5, **options):
+    def run(
+        self,
+        question: str,
+        source_urls: list[str] | None = None,
+        max_sources: int = 5,
+        **options,
+    ):
         acquisition = None
         if source_urls:
             provider = StaticURLProvider(source_urls)
