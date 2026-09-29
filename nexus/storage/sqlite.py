@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 from nexus.graph.model import Edge, Node
@@ -93,20 +94,25 @@ class SQLiteStore:
             )
 
     def load_acquired_sources(self, limit=20):
+        now = datetime.now(timezone.utc)
         with self.connect() as c:
             rows = c.execute(
-                "SELECT canonical_url,title,provider,quality,content_hash,fetched_at,freshness_days FROM acquired_sources ORDER BY fetched_at DESC LIMIT ?",
+                "SELECT canonical_url,title,provider,quality,content_hash,fetched_at FROM acquired_sources ORDER BY fetched_at DESC LIMIT ?",
                 (limit,),
             ).fetchall()
-        return [
-            {
-                "canonical_url": row[0],
-                "title": row[1],
-                "provider": row[2],
-                "quality": row[3],
-                "content_hash": row[4],
-                "fetched_at": row[5],
-                "freshness_days": row[6],
-            }
-            for row in rows
-        ]
+        items = []
+        for row in rows:
+            fetched_at = datetime.fromisoformat(row[5])
+            age = max(0.0, (now - fetched_at).total_seconds() / 86400)
+            items.append(
+                {
+                    "canonical_url": row[0],
+                    "title": row[1],
+                    "provider": row[2],
+                    "quality": row[3],
+                    "content_hash": row[4],
+                    "fetched_at": row[5],
+                    "freshness_days": round(age, 4),
+                }
+            )
+        return items
