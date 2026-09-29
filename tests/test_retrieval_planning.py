@@ -1,6 +1,5 @@
 from nexus.agents.base import AgentContext
 from nexus.agents.retriever import RetrievalAgent
-from nexus.types import Chunk
 
 
 class FakeRetriever:
