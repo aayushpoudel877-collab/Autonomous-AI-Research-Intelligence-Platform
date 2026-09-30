@@ -19,6 +19,9 @@ class SQLiteStore:
             c.execute("CREATE TABLE IF NOT EXISTS graph_edges(source TEXT NOT NULL,target TEXT NOT NULL,relation TEXT NOT NULL,confidence REAL NOT NULL,evidence_chunk_id TEXT NOT NULL,source_uri TEXT NOT NULL,PRIMARY KEY(source,target,relation,evidence_chunk_id))")
             c.execute("CREATE TABLE IF NOT EXISTS acquired_sources(canonical_url TEXT PRIMARY KEY,title TEXT NOT NULL,provider TEXT NOT NULL,quality REAL NOT NULL,content_hash TEXT NOT NULL,fetched_at TEXT NOT NULL,freshness_days REAL NOT NULL,version INTEGER NOT NULL DEFAULT 1)")
             c.execute("CREATE TABLE IF NOT EXISTS source_versions(canonical_url TEXT NOT NULL,version INTEGER NOT NULL,content_hash TEXT NOT NULL,fetched_at TEXT NOT NULL,quality REAL NOT NULL,PRIMARY KEY(canonical_url,version))")
+            columns = {row[1] for row in c.execute("PRAGMA table_info(acquired_sources)").fetchall()}
+            if "version" not in columns:
+                c.execute("ALTER TABLE acquired_sources ADD COLUMN version INTEGER NOT NULL DEFAULT 1")
 
     def connect(self):
         return sqlite3.connect(self.path)
