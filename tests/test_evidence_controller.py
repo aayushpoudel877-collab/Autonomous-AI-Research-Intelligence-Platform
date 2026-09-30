@@ -5,13 +5,7 @@ from nexus.research.evidence import EvidenceController
 
 def test_evidence_controller_requires_diverse_sources():
     controller = EvidenceController()
-    evidence = [
-        SimpleNamespace(score=0.8, source_uri="a"),
-        SimpleNamespace(score=0.8, source_uri="a"),
-        SimpleNamespace(score=0.8, source_uri="a"),
-        SimpleNamespace(score=0.8, source_uri="a"),
-        SimpleNamespace(score=0.8, source_uri="a"),
-    ]
+    evidence = [SimpleNamespace(score=0.8, source_uri="a") for _ in range(5)]
     result = controller.assess(evidence, target_evidence=5, target_sources=2)
     assert not result.sufficient
     assert result.reason == "more_source_diversity_needed"
@@ -29,3 +23,17 @@ def test_evidence_controller_stops_when_targets_met():
     result = controller.assess(evidence, target_evidence=5, target_sources=2)
     assert result.sufficient
     assert result.coverage == 1.0
+
+
+def test_evidence_controller_flags_low_relevance():
+    controller = EvidenceController()
+    evidence = [
+        SimpleNamespace(score=0.01, source_uri="a"),
+        SimpleNamespace(score=0.02, source_uri="b"),
+        SimpleNamespace(score=0.03, source_uri="a"),
+        SimpleNamespace(score=0.04, source_uri="b"),
+        SimpleNamespace(score=0.05, source_uri="a"),
+    ]
+    result = controller.assess(evidence, target_evidence=5, target_sources=2)
+    assert not result.sufficient
+    assert result.reason == "retrieval_relevance_below_threshold"
