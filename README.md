@@ -114,3 +114,31 @@ The acquisition path deliberately separates network I/O from corpus mutation: UR
 Question → Planner → Source Candidates → Safe Web Acquisition → Canonicalization/Deduplication → Quality/Freshness Metadata → Persistent Index → Planned Retrieval → Knowledge Graph → Verification → Report
 
 The search-provider boundary remains intentionally provider-agnostic. No commercial search API is hard-coded into the repository, so a production provider can be added without changing the research controller or agent contracts.
+
+
+## Phase 7: Adaptive evidence control, freshness, and source versioning
+
+Phase 7 makes the research controller evidence-aware instead of treating every acquisition as permanently new.
+
+### Phase 7 capabilities
+
+- Persistent source registry with freshness decisions.
+- Backward-compatible SQLite migration for existing Phase 6 databases.
+- Source version history keyed by canonical URL and content hash.
+- Automatic cache reuse for fresh sources.
+- Configurable freshness TTL and explicit force-refresh.
+- Evidence stopping policy based on evidence quantity, source diversity, and average retrieval relevance.
+- Explicit, inspectable stopping reasons.
+- Research API exposes the evidence assessment.
+- Source history endpoint for auditability.
+- Regression coverage for evidence sufficiency, source age, and cached acquisitions.
+
+### Adaptive evidence policy
+
+NEXUS now separates **retrieval relevance** from **source trust**. The source-quality heuristic remains descriptive metadata rather than a claim that a source is factually correct. The evidence controller decides whether the current research run has enough diverse, relevant evidence according to explicit thresholds.
+
+The resulting control loop is:
+
+Question → Plan → Acquire/Re-use Sources → Retrieve → Assess Evidence → Stop or Continue Within Budget → Verify → Report
+
+This remains bounded and deterministic. A future search-provider integration can supply additional candidates without changing the evidence-control contract.
