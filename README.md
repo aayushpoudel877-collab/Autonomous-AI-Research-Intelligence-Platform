@@ -142,3 +142,17 @@ The resulting control loop is:
 Question → Plan → Acquire/Re-use Sources → Retrieve → Assess Evidence → Stop or Continue Within Budget → Verify → Report
 
 This remains bounded and deterministic. A future search-provider integration can supply additional candidates without changing the evidence-control contract.
+
+
+## Phase 8: Multi-agent research synthesis
+
+Phase 8 adds a deterministic synthesis baseline after retrieval, graph expansion, verification, and reporting. The synthesis pipeline has distinct roles:
+
+- **Evidence mapper:** extracts bounded sentence-level evidence units and preserves evidence IDs and source URIs.
+- **Source critic:** summarizes source diversity and mean retrieval relevance, while explicitly avoiding claims that a source is true merely because it scores well.
+- **Disagreement analyst:** flags near-identical statements with polarity differences for human inspection.
+- **Synthesis coordinator:** combines the outputs into a compact synthesis object with limitations.
+
+The API response includes a `synthesis` object containing claim-level provenance, source review, potential disagreements, and explicit limitations. The report includes a concise synthesis summary.
+
+This is a provider-free baseline, not a set of independently reasoning LLM agents. Its extraction, confidence, and disagreement rules are heuristic; confidence is not a calibrated probability of truth. Future work can add isolated model-backed agents behind the same output contract, with budget controls and evaluation.

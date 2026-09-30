@@ -42,6 +42,7 @@ class ResearchResponse(BaseModel):
     discovered_sources: list[dict[str, str | float]] = Field(default_factory=list)
     acquisition: dict = Field(default_factory=dict)
     evidence_assessment: dict = Field(default_factory=dict)
+    synthesis: dict = Field(default_factory=dict)
 
 
 class AcquisitionJobResponse(BaseModel):

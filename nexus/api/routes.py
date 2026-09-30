@@ -95,6 +95,7 @@ def research(request: ResearchRequest):
         discovered_sources=ctx.state.get("discovered_sources", []),
         acquisition=ctx.state.get("acquisition", {}),
         evidence_assessment=ctx.state.get("evidence_assessment", {}),
+        synthesis=ctx.state.get("synthesis", {}),
     )
 
 
