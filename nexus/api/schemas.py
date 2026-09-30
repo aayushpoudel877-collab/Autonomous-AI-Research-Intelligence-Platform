@@ -16,6 +16,11 @@ class ResearchRequest(BaseModel):
     max_iterations: int = Field(default=3, ge=1, le=3)
     source_urls: list[str] = Field(default_factory=list, max_length=20)
     max_sources: int = Field(default=5, ge=1, le=20)
+    target_evidence: int = Field(default=5, ge=1, le=20)
+    target_sources: int = Field(default=2, ge=1, le=10)
+    min_average_score: float = Field(default=0.15, ge=0.0, le=1.0)
+    max_age_days: float = Field(default=1.0, ge=0.0, le=30.0)
+    force_refresh: bool = False
 
 
 class AcquisitionRequest(BaseModel):
@@ -36,6 +41,7 @@ class ResearchResponse(BaseModel):
     iterations: int = 0
     discovered_sources: list[dict[str, str | float]] = Field(default_factory=list)
     acquisition: dict = Field(default_factory=dict)
+    evidence_assessment: dict = Field(default_factory=dict)
 
 
 class AcquisitionJobResponse(BaseModel):
