@@ -33,6 +33,7 @@ def _acquire_urls(urls, max_sources):
         "requested": result.requested,
         "acquired": result.acquired,
         "skipped": result.skipped,
+        "cached": result.cached,
         "failed": result.failed,
         "sources": [source.__dict__ for source in result.sources],
         "errors": list(result.errors),
@@ -70,6 +71,11 @@ def research(request: ResearchRequest):
         request.question,
         source_urls=request.source_urls,
         max_sources=request.max_sources,
+        target_evidence=request.target_evidence,
+        target_sources=request.target_sources,
+        min_average_score=request.min_average_score,
+        max_age_days=request.max_age_days,
+        force_refresh=request.force_refresh,
         top_k=request.top_k,
         graph_hops=request.graph_hops,
         max_iterations=request.max_iterations,
@@ -88,6 +94,7 @@ def research(request: ResearchRequest):
         iterations=ctx.state.get("iterations", 0),
         discovered_sources=ctx.state.get("discovered_sources", []),
         acquisition=ctx.state.get("acquisition", {}),
+        evidence_assessment=ctx.state.get("evidence_assessment", {}),
     )
 
 
@@ -115,3 +122,9 @@ def research_memory(limit: int = 10):
 def research_sources(limit: int = 20):
     limit = max(1, min(limit, 100))
     return {"items": store.load_acquired_sources(limit)}
+
+
+@router.get("/research/sources/history")
+def research_source_history(url: str):
+    return {"items": store.load_source_versions(url)}
+
