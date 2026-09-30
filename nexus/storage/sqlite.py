@@ -17,7 +17,8 @@ class SQLiteStore:
             c.execute("CREATE TABLE IF NOT EXISTS research_memory(id INTEGER PRIMARY KEY AUTOINCREMENT,question TEXT NOT NULL,plan TEXT NOT NULL,evidence_count INTEGER NOT NULL,graph_fact_count INTEGER NOT NULL,citation_integrity REAL NOT NULL,created_at TEXT DEFAULT CURRENT_TIMESTAMP)")
             c.execute("CREATE TABLE IF NOT EXISTS graph_nodes(id TEXT PRIMARY KEY,label TEXT NOT NULL,kind TEXT NOT NULL,mentions TEXT NOT NULL)")
             c.execute("CREATE TABLE IF NOT EXISTS graph_edges(source TEXT NOT NULL,target TEXT NOT NULL,relation TEXT NOT NULL,confidence REAL NOT NULL,evidence_chunk_id TEXT NOT NULL,source_uri TEXT NOT NULL,PRIMARY KEY(source,target,relation,evidence_chunk_id))")
-            c.execute("CREATE TABLE IF NOT EXISTS acquired_sources(canonical_url TEXT PRIMARY KEY,title TEXT NOT NULL,provider TEXT NOT NULL,quality REAL NOT NULL,content_hash TEXT NOT NULL,fetched_at TEXT NOT NULL,freshness_days REAL NOT NULL)")
+            c.execute("CREATE TABLE IF NOT EXISTS acquired_sources(canonical_url TEXT PRIMARY KEY,title TEXT NOT NULL,provider TEXT NOT NULL,quality REAL NOT NULL,content_hash TEXT NOT NULL,fetched_at TEXT NOT NULL,freshness_days REAL NOT NULL,version INTEGER NOT NULL DEFAULT 1)")
+            c.execute("CREATE TABLE IF NOT EXISTS source_versions(canonical_url TEXT NOT NULL,version INTEGER NOT NULL,content_hash TEXT NOT NULL,fetched_at TEXT NOT NULL,quality REAL NOT NULL,PRIMARY KEY(canonical_url,version))")
 
     def connect(self):
         return sqlite3.connect(self.path)
@@ -78,41 +79,70 @@ class SQLiteStore:
             for row in rows
         ]
 
+    def get_acquired_source(self, canonical_url):
+        with self.connect() as c:
+            row = c.execute(
+                "SELECT canonical_url,title,provider,quality,content_hash,fetched_at,freshness_days,version "
+                "FROM acquired_sources WHERE canonical_url=?",
+                (canonical_url,),
+            ).fetchone()
+        if not row:
+            return None
+        return {
+            "canonical_url": row[0], "title": row[1], "provider": row[2],
+            "quality": row[3], "content_hash": row[4], "fetched_at": row[5],
+            "freshness_days": row[6], "version": row[7],
+        }
+
     def save_acquired_source(self, source: AcquiredSource):
+        existing = self.get_acquired_source(source.canonical_url)
+        version = int(existing["version"]) + 1 if existing else 1
+        if existing and existing["content_hash"] == source.content_hash:
+            version = int(existing["version"])
         with self.connect() as c:
             c.execute(
-                "INSERT OR REPLACE INTO acquired_sources VALUES (?,?,?,?,?,?,?)",
+                "INSERT OR REPLACE INTO acquired_sources "
+                "(canonical_url,title,provider,quality,content_hash,fetched_at,freshness_days,version) "
+                "VALUES (?,?,?,?,?,?,?,?)",
                 (
-                    source.canonical_url,
-                    source.title,
-                    source.provider,
-                    source.quality,
-                    source.content_hash,
-                    source.fetched_at,
-                    source.freshness_days,
+                    source.canonical_url, source.title, source.provider, source.quality,
+                    source.content_hash, source.fetched_at, source.freshness_days, version,
                 ),
             )
+            c.execute(
+                "INSERT OR IGNORE INTO source_versions "
+                "(canonical_url,version,content_hash,fetched_at,quality) VALUES (?,?,?,?,?)",
+                (source.canonical_url, version, source.content_hash, source.fetched_at, source.quality),
+            )
+
+    def load_source_versions(self, canonical_url, limit=20):
+        with self.connect() as c:
+            rows = c.execute(
+                "SELECT canonical_url,version,content_hash,fetched_at,quality "
+                "FROM source_versions WHERE canonical_url=? ORDER BY version DESC LIMIT ?",
+                (canonical_url, limit),
+            ).fetchall()
+        return [
+            {"canonical_url": row[0], "version": row[1], "content_hash": row[2],
+             "fetched_at": row[3], "quality": row[4]}
+            for row in rows
+        ]
 
     def load_acquired_sources(self, limit=20):
         now = datetime.now(UTC)
         with self.connect() as c:
             rows = c.execute(
-                "SELECT canonical_url,title,provider,quality,content_hash,fetched_at FROM acquired_sources ORDER BY fetched_at DESC LIMIT ?",
+                "SELECT canonical_url,title,provider,quality,content_hash,fetched_at,version "
+                "FROM acquired_sources ORDER BY fetched_at DESC LIMIT ?",
                 (limit,),
             ).fetchall()
         items = []
         for row in rows:
             fetched_at = datetime.fromisoformat(row[5])
             age = max(0.0, (now - fetched_at).total_seconds() / 86400)
-            items.append(
-                {
-                    "canonical_url": row[0],
-                    "title": row[1],
-                    "provider": row[2],
-                    "quality": row[3],
-                    "content_hash": row[4],
-                    "fetched_at": row[5],
-                    "freshness_days": round(age, 4),
-                }
-            )
+            items.append({
+                "canonical_url": row[0], "title": row[1], "provider": row[2],
+                "quality": row[3], "content_hash": row[4], "fetched_at": row[5],
+                "freshness_days": round(age, 4), "version": row[6],
+            })
         return items
